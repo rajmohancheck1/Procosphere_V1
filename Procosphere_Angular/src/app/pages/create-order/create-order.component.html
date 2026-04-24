@@ -1,0 +1,358 @@
+<div class="max-w-4xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold mb-1">Create Procurement Order</h1>
+    <p class="text-gray-600">Complete the form to create a new order</p>
+  </div>
+
+  @if (successMessage) {
+    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+      <p class="text-sm text-green-800">{{ successMessage }}</p>
+    </div>
+  }
+
+  <!-- Step Indicator -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center justify-between">
+      @for (step of steps; track step; let i = $index) {
+        <div class="flex items-center flex-1">
+          <div class="flex flex-col items-center flex-1">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-medium"
+              [class.bg-green-500]="i < currentStep" [class.text-white]="i <= currentStep"
+              [class.bg-blue-600]="i === currentStep"
+              [class.bg-gray-200]="i > currentStep" [class.text-gray-600]="i > currentStep">
+              @if (i < currentStep) {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+              } @else {
+                {{ i + 1 }}
+              }
+            </div>
+            <span class="text-xs mt-2 text-center">{{ step }}</span>
+          </div>
+          @if (i < steps.length - 1) {
+            <div class="h-1 flex-1" [class.bg-green-500]="i < currentStep" [class.bg-gray-200]="i >= currentStep"></div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Form Content -->
+  <div class="bg-white rounded-lg shadow p-6">
+
+    <!-- Step 1: Order Details -->
+    @if (currentStep === 0) {
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold mb-4">Order Details</h2>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Order Title *</label>
+          <input type="text" [(ngModel)]="formData.orderTitle" placeholder="e.g., Office Equipment Q1 2026"
+            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [class.border-red-500]="errors['orderTitle']" [class.border-gray-300]="!errors['orderTitle']" />
+          @if (errors['orderTitle']) { <p class="text-sm text-red-600 mt-1">{{ errors['orderTitle'] }}</p> }
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
+            <select [(ngModel)]="formData.supplierId" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['supplierId']" [class.border-gray-300]="!errors['supplierId']">
+              <option [ngValue]="0">Select supplier</option>
+              @for (s of suppliers; track s) { <option [ngValue]="s">Supplier #{{ s }}</option> }
+            </select>
+            @if (errors['supplierId']) { <p class="text-sm text-red-600 mt-1">{{ errors['supplierId'] }}</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Department *</label>
+            <input type="text" [(ngModel)]="formData.department" placeholder="e.g., IT, Finance"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['department']" [class.border-gray-300]="!errors['department']" />
+            @if (errors['department']) { <p class="text-sm text-red-600 mt-1">{{ errors['department'] }}</p> }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <select [(ngModel)]="formData.priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
+            <select [(ngModel)]="formData.paymentMethod" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['paymentMethod']" [class.border-gray-300]="!errors['paymentMethod']">
+              <option value="">Select payment method</option>
+              @for (p of paymentMethods; track p) { <option [value]="p">{{ p }}</option> }
+            </select>
+            @if (errors['paymentMethod']) { <p class="text-sm text-red-600 mt-1">{{ errors['paymentMethod'] }}</p> }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Budget Code *</label>
+            <input type="text" [(ngModel)]="formData.budgetCode" placeholder="e.g., IT-2024"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['budgetCode']" [class.border-gray-300]="!errors['budgetCode']" />
+            @if (errors['budgetCode']) { <p class="text-sm text-red-600 mt-1">{{ errors['budgetCode'] }}</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date *</label>
+            <input type="date" [(ngModel)]="formData.expectedDeliveryDate"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['expectedDeliveryDate']" [class.border-gray-300]="!errors['expectedDeliveryDate']" />
+            @if (errors['expectedDeliveryDate']) { <p class="text-sm text-red-600 mt-1">{{ errors['expectedDeliveryDate'] }}</p> }
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+          <textarea [(ngModel)]="formData.notes" rows="3" placeholder="Additional notes..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+      </div>
+    }
+
+    <!-- Step 2: Select Products -->
+    @if (currentStep === 1) {
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold mb-4">Select Products</h2>
+        @if (errors['selectedProducts']) {
+          <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+            <p class="text-sm text-red-800">{{ errors['selectedProducts'] }}</p>
+          </div>
+        }
+        @if (isLoading) {
+          <p class="text-gray-500 text-center py-6">Loading products...</p>
+        }
+        <div class="space-y-3">
+          @for (product of products; track product.productId) {
+            <div class="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
+              [class.border-blue-500]="isSelected(product.productId)"
+              [class.bg-blue-50]="isSelected(product.productId)"
+              [class.border-gray-200]="!isSelected(product.productId)"
+              (click)="toggleProduct(product.productId)">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" [checked]="isSelected(product.productId)" (click)="$event.stopPropagation()" (change)="toggleProduct(product.productId)"
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                <div>
+                  <p class="font-medium">{{ product.productName }}</p>
+                  <p class="text-sm text-gray-600">{{ product.categoryName }}</p>
+                </div>
+              </div>
+              <span class="font-semibold text-blue-600">${{ (product.price ?? 0).toFixed(2) }}</span>
+            </div>
+          }
+        </div>
+        <p class="text-sm text-gray-600">{{ formData.selectedProducts.length }} product(s) selected</p>
+      </div>
+    }
+
+    <!-- Step 3: Enter Quantities -->
+    @if (currentStep === 2) {
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold mb-4">Enter Quantities</h2>
+        @if (formData.selectedProducts.length === 0) {
+          <p class="text-gray-500">No products selected. Go back and select products.</p>
+        }
+        @for (id of formData.selectedProducts; track id) {
+          <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+            <div>
+              <p class="font-medium">{{ getProduct(id)?.productName }}</p>
+              <p class="text-sm text-gray-600">${{ getProduct(id)?.price?.toFixed(2) }} each</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div>
+                <input type="number" [value]="formData.quantities[id] || ''" (input)="updateQuantity(id, $any($event.target).value)"
+                  min="1" max="100" placeholder="Qty"
+                  class="w-24 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                  [class.border-red-500]="errors['qty_'+id]" [class.border-gray-300]="!errors['qty_'+id]" />
+                @if (errors['qty_'+id]) { <p class="text-xs text-red-600 mt-1">{{ errors['qty_'+id] }}</p> }
+              </div>
+              <p class="text-sm font-medium w-24 text-right">
+                ${{ ((getProduct(id)?.price || 0) * (formData.quantities[id] || 0)).toFixed(2) }}
+              </p>
+            </div>
+          </div>
+        }
+        <div class="border-t pt-4 flex justify-end">
+          <div class="text-right">
+            <p class="text-sm text-gray-600">Total Amount</p>
+            <p class="text-2xl font-bold text-blue-600">${{ calculateTotal().toFixed(2) }}</p>
+          </div>
+        </div>
+        @if (errors['total']) {
+          <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+            <p class="text-sm text-red-800">{{ errors['total'] }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Step 4: Delivery Information -->
+    @if (currentStep === 3) {
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold mb-4">Delivery Information</h2>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Method *</label>
+          <select [(ngModel)]="formData.deliveryMethod" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [class.border-red-500]="errors['deliveryMethod']" [class.border-gray-300]="!errors['deliveryMethod']">
+            <option value="">Select delivery method</option>
+            @for (d of deliveryMethods; track d) { <option [value]="d">{{ d }}</option> }
+          </select>
+          @if (errors['deliveryMethod']) { <p class="text-sm text-red-600 mt-1">{{ errors['deliveryMethod'] }}</p> }
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Address *</label>
+          <input type="text" [(ngModel)]="formData.deliveryAddress" placeholder="Street address"
+            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [class.border-red-500]="errors['deliveryAddress']" [class.border-gray-300]="!errors['deliveryAddress']" />
+          @if (errors['deliveryAddress']) { <p class="text-sm text-red-600 mt-1">{{ errors['deliveryAddress'] }}</p> }
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+            <input type="text" [(ngModel)]="formData.deliveryCity"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['deliveryCity']" [class.border-gray-300]="!errors['deliveryCity']" />
+            @if (errors['deliveryCity']) { <p class="text-sm text-red-600 mt-1">{{ errors['deliveryCity'] }}</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
+            <input type="text" [(ngModel)]="formData.deliveryState"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['deliveryState']" [class.border-gray-300]="!errors['deliveryState']" />
+            @if (errors['deliveryState']) { <p class="text-sm text-red-600 mt-1">{{ errors['deliveryState'] }}</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
+            <input type="text" [(ngModel)]="formData.deliveryZip" placeholder="e.g., 94105"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['deliveryZip']" [class.border-gray-300]="!errors['deliveryZip']" />
+            @if (errors['deliveryZip']) { <p class="text-sm text-red-600 mt-1">{{ errors['deliveryZip'] }}</p> }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person *</label>
+            <input type="text" [(ngModel)]="formData.contactPerson"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['contactPerson']" [class.border-gray-300]="!errors['contactPerson']" />
+            @if (errors['contactPerson']) { <p class="text-sm text-red-600 mt-1">{{ errors['contactPerson'] }}</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone *</label>
+            <input type="tel" [(ngModel)]="formData.contactPhone" placeholder="(123) 456-7890"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['contactPhone']" [class.border-gray-300]="!errors['contactPhone']" />
+            @if (errors['contactPhone']) { <p class="text-sm text-red-600 mt-1">{{ errors['contactPhone'] }}</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email *</label>
+            <input type="email" [(ngModel)]="formData.contactEmail"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [class.border-red-500]="errors['contactEmail']" [class.border-gray-300]="!errors['contactEmail']" />
+            @if (errors['contactEmail']) { <p class="text-sm text-red-600 mt-1">{{ errors['contactEmail'] }}</p> }
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
+          <textarea [(ngModel)]="formData.specialInstructions" rows="3"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Any special delivery instructions..."></textarea>
+        </div>
+      </div>
+    }
+
+    <!-- Step 5: Review & Submit -->
+    @if (currentStep === 4) {
+      <div class="space-y-6">
+        <h2 class="text-xl font-semibold mb-4">Review & Submit</h2>
+
+        <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+          <h3 class="font-semibold text-gray-700 mb-3">Order Details</h3>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <p class="text-gray-600">Order Title:</p><p class="font-medium">{{ formData.orderTitle }}</p>
+            <p class="text-gray-600">Supplier:</p><p class="font-medium">Supplier #{{ formData.supplierId }}</p>
+            <p class="text-gray-600">Department:</p><p class="font-medium">{{ formData.department }}</p>
+            <p class="text-gray-600">Payment Method:</p><p class="font-medium">{{ formData.paymentMethod }}</p>
+            <p class="text-gray-600">Budget Code:</p><p class="font-medium">{{ formData.budgetCode }}</p>
+            <p class="text-gray-600">Expected Delivery:</p><p class="font-medium">{{ formData.expectedDeliveryDate }}</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4">
+          <h3 class="font-semibold text-gray-700 mb-3">Selected Products</h3>
+          @for (id of formData.selectedProducts; track id) {
+            <div class="flex justify-between text-sm py-1">
+              <span>{{ getProduct(id)?.productName }} × {{ formData.quantities[id] || 0 }}</span>
+              <span class="font-medium">${{ ((getProduct(id)?.price || 0) * (formData.quantities[id] || 0)).toFixed(2) }}</span>
+            </div>
+          }
+          <div class="border-t mt-2 pt-2 flex justify-between font-semibold">
+            <span>Total</span>
+            <span class="text-blue-600">${{ calculateTotal().toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+          <h3 class="font-semibold text-gray-700 mb-3">Delivery Information</h3>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <p class="text-gray-600">Method:</p><p class="font-medium">{{ formData.deliveryMethod }}</p>
+            <p class="text-gray-600">Address:</p><p class="font-medium">{{ formData.deliveryAddress }}, {{ formData.deliveryCity }}, {{ formData.deliveryState }} {{ formData.deliveryZip }}</p>
+            <p class="text-gray-600">Contact:</p><p class="font-medium">{{ formData.contactPerson }}</p>
+          </div>
+        </div>
+
+        @if (errors['total'] || errors['budgetCode'] || errors['general']) {
+          <div class="bg-red-50 border border-red-200 rounded-lg p-3 space-y-1">
+            @if (errors['total']) { <p class="text-sm text-red-800">{{ errors['total'] }}</p> }
+            @if (errors['budgetCode']) { <p class="text-sm text-red-800">{{ errors['budgetCode'] }}</p> }
+            @if (errors['general']) { <p class="text-sm text-red-800">{{ errors['general'] }}</p> }
+          </div>
+        }
+
+        @if (serverValidating) {
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-sm text-blue-800">Validating order with server...</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+    <div class="flex gap-3">
+      <button (click)="handleCancel()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+      <button (click)="handleReset()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Reset Form</button>
+    </div>
+    <div class="flex gap-3">
+      @if (currentStep > 0) {
+        <button (click)="handleBack()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          Back
+        </button>
+      }
+      @if (currentStep < steps.length - 1) {
+        <button (click)="handleNext()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+          Next
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      } @else {
+        <button (click)="handleSubmit()" [disabled]="serverValidating" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ serverValidating ? 'Submitting...' : 'Submit Order' }}
+        </button>
+      }
+    </div>
+  </div>
+</div>

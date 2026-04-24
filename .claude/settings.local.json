@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\(\\\\.java$|\\\\.ts$|\\\\.properties$|\\\\.yml$|\\\\.json$\\)\")",
+      "Bash(npx ng *)",
+      "Bash(npm install *)",
+      "Bash(ls mvnw*)",
+      "Bash(ls pom.xml)",
+      "Bash(./mvnw.cmd compile *)",
+      "Bash(./mvnw.cmd clean *)"
+    ]
+  }
+}
