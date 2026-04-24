@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService, NotificationResponse } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
+import { SettingsService } from '../../services/settings.service';
 
 interface NotificationView {
   id: number; type: 'alert' | 'success' | 'warning' | 'info';
-  title: string; message: string; time: string; read: boolean;
+  rawType: string; title: string; message: string; time: string; read: boolean;
 }
 
 @Component({
@@ -30,11 +31,16 @@ export class NotificationsComponent implements OnInit {
   private typeMap: Record<string, 'alert' | 'success' | 'warning' | 'info'> = {
     LOW_STOCK: 'alert', CRITICAL_STOCK: 'alert',
     ORDER_DELIVERED: 'success', ORDER_APPROVED: 'success', ORDER_CREATED: 'success',
+    ORDER_SHIPPED: 'success', ORDER_RETURNED: 'warning',
     ORDER_REJECTED: 'warning', APPROVAL_REQUIRED: 'warning',
     PRICE_UPDATE: 'info', NEW_SUPPLIER: 'info', GENERAL: 'info',
   };
 
-  constructor(private notificationService: NotificationService, private authService: AuthService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private authService: AuthService,
+    private settingsService: SettingsService,
+  ) {}
 
   ngOnInit() {
     const userId = this.authService.getCurrentUserId();
@@ -57,15 +63,25 @@ export class NotificationsComponent implements OnInit {
   private mapNotification(n: NotificationResponse): NotificationView {
     const type = this.typeMap[n.notificationType] ?? 'info';
     const title = n.notificationType.replace(/_/g, ' ')
-      .split(' ').map(w => w[0] + w.slice(1).toLowerCase()).join(' ');
+      .split(' ').filter(w => w.length).map(w => w[0] + w.slice(1).toLowerCase()).join(' ');
     const time = n.createdAt ? new Date(n.createdAt).toLocaleString() : '';
-    return { id: n.notificationId, type, title, message: n.message, time, read: !!(n.read ?? n.isRead) };
+    return { id: n.notificationId, type, rawType: n.notificationType, title, message: n.message, time, read: !!(n.read ?? n.isRead) };
   }
 
-  get unreadCount(): number { return this.notifications.filter(n => !n.read).length; }
-
+  /** Filtered by Settings toggles + the Unread/All filter. */
   get filteredNotifications(): NotificationView[] {
-    return this.filter === 'unread' ? this.notifications.filter(n => !n.read) : this.notifications;
+    const byToggle = this.notifications.filter(n => this.settingsService.shouldShowNotification(n.rawType));
+    return this.filter === 'unread' ? byToggle.filter(n => !n.read) : byToggle;
+  }
+
+  get unreadCount(): number {
+    return this.notifications
+      .filter(n => this.settingsService.shouldShowNotification(n.rawType))
+      .filter(n => !n.read).length;
+  }
+
+  get hiddenByFilterCount(): number {
+    return this.notifications.length - this.notifications.filter(n => this.settingsService.shouldShowNotification(n.rawType)).length;
   }
 
   markAsRead(id: number) {

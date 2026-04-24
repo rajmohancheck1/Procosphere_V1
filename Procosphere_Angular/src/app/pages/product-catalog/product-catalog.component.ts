@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ProductService, ProductResponse } from '../../services/product.service';
 import { CategoryService, CategoryResponse } from '../../services/category.service';
 
 @Component({
   selector: 'app-product-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './product-catalog.component.html',
 })
 export class ProductCatalogComponent implements OnInit {

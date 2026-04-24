@@ -8,19 +8,25 @@
     <!-- Logo -->
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
       @if (!sidebarCollapsed) {
-        <div>
-          <h1 class="font-bold text-lg">ProcureSphere</h1>
-          <p class="text-xs text-gray-600">Procurement Platform</p>
+        <div class="flex items-center gap-2">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold" [ngClass]="theme.logoBg">
+            {{ theme.brand[0] }}
+          </div>
+          <div>
+            <h1 class="font-bold text-base leading-tight">{{ theme.brand }}</h1>
+          </div>
+        </div>
+      } @else {
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold mx-auto" [ngClass]="theme.logoBg">
+          {{ theme.brand[0] }}
         </div>
       }
       <button (click)="sidebarCollapsed = !sidebarCollapsed" class="p-2 hover:bg-gray-100 rounded-lg">
         @if (sidebarCollapsed) {
-          <!-- Menu icon -->
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
           </svg>
         } @else {
-          <!-- ChevronLeft icon -->
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path d="m15 18-6-6 6-6"/>
           </svg>
@@ -28,96 +34,77 @@
       </button>
     </div>
 
-    <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto py-4">
-      @for (item of visibleMenuItems; track item.path) {
-        <button
-          (click)="navigate(item.path)"
-          [title]="sidebarCollapsed ? item.label : ''"
-          class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors relative"
-          [class.bg-blue-50]="isActive(item.path)"
-          [class.text-blue-600]="isActive(item.path)"
-          [class.border-r-4]="isActive(item.path)"
-          [class.border-blue-600]="isActive(item.path)"
-          [class.text-gray-700]="!isActive(item.path)"
-        >
-          <!-- Icon based on item.icon -->
-          @switch (item.icon) {
-            @case ('layout-dashboard') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
-              </svg>
+    <!-- Navigation (grouped by section) -->
+    <nav class="flex-1 overflow-y-auto py-2">
+      @for (group of groupedMenu; track group.section) {
+        @if (!sidebarCollapsed) {
+          <p class="px-4 pt-4 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{{ group.section }}</p>
+        } @else {
+          <div class="my-2 border-t border-gray-100 mx-2"></div>
+        }
+        @for (item of group.items; track item.path + item.label) {
+          <button
+            (click)="navigate(item.path)"
+            [title]="sidebarCollapsed ? item.label : ''"
+            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors relative"
+            [class]="isActive(item.path) ? theme.activeBg + ' ' + theme.activeText + ' border-r-4 ' + theme.activeBorder : 'text-gray-700'"
+          >
+            @switch (item.icon) {
+              @case ('layout-dashboard') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+              }
+              @case ('package') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+              }
+              @case ('shopping-cart') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              }
+              @case ('history') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+              }
+              @case ('truck') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect width="7" height="7" x="14" y="10" rx="1"/><circle cx="17" cy="21" r="2"/><circle cx="7" cy="21" r="2"/></svg>
+              }
+              @case ('database') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+              }
+              @case ('bell') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              }
+              @case ('user') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+              }
+              @case ('users') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              }
+              @case ('check-circle') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+              }
+              @case ('settings') {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              }
             }
-            @case ('package') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-              </svg>
-            }
-            @case ('shopping-cart') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-              </svg>
-            }
-            @case ('history') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
-              </svg>
-            }
-            @case ('truck') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect width="7" height="7" x="14" y="10" rx="1"/><circle cx="17" cy="21" r="2"/><circle cx="7" cy="21" r="2"/><path d="M5 17H3"/><path d="M22 17H20"/>
-              </svg>
-            }
-            @case ('database') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>
-              </svg>
-            }
-            @case ('bell') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-              </svg>
-            }
-            @case ('user') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/>
-              </svg>
-            }
-            @case ('users') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            }
-            @case ('settings') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-            }
-          }
 
-          @if (!sidebarCollapsed) {
-            <span class="flex-1 text-left text-sm">{{ item.label }}</span>
-            @if (getBadge(item)) {
-              <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{{ getBadge(item) }}</span>
+            @if (!sidebarCollapsed) {
+              <span class="flex-1 text-left text-sm">{{ item.label }}</span>
+              @if (getBadge(item)) {
+                <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{{ getBadge(item) }}</span>
+              }
             }
-          }
-          @if (sidebarCollapsed && getBadge(item)) {
-            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-          }
-        </button>
+            @if (sidebarCollapsed && getBadge(item)) {
+              <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+            }
+          </button>
+        }
       }
     </nav>
 
     <!-- User Info at Bottom -->
     @if (!sidebarCollapsed) {
       <div class="p-4 border-t border-gray-200">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">{{ currentUserInitial }}</div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate">{{ currentUserName }}</p>
-            <p class="text-xs text-gray-600 truncate">{{ currentUserRole }}</p>
-          </div>
-        </div>
+        <p class="text-sm font-medium truncate">{{ currentUserName }}</p>
+        <p class="text-xs text-gray-500 truncate mb-2">{{ currentUserEmail }}</p>
+        <span class="inline-block px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="theme.roleBadgeBg + ' ' + theme.roleBadgeText">{{ currentUserRole }}</span>
       </div>
     }
   </aside>
@@ -126,9 +113,8 @@
   <div class="flex-1 flex flex-col min-w-0">
 
     <!-- Top Utility Bar -->
-    <header class="bg-white border-b border-gray-200 px-6 py-4">
+    <header class="bg-white border-b border-gray-200 px-6 py-3">
       <div class="flex items-center justify-between gap-4">
-
         <!-- Global Search -->
         <div class="flex-1 max-w-xl relative">
           <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -138,18 +124,13 @@
             type="text"
             [value]="searchQuery"
             (input)="onSearchInput($any($event.target).value)"
-            (blur)="hideSearch()"
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search products, orders, suppliers..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
+            [ngClass]="theme.focusRing"
+            [placeholder]="role === 'ADMIN' ? 'Search...' : (role === 'MANAGER' ? 'Search approvals, suppliers...' : 'Search orders...')"
           />
         </div>
 
-        <div class="flex items-center gap-4">
-          <!-- Create Order Button -->
-          <button (click)="navigate('/app/create-order')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            Create Order
-          </button>
-
+        <div class="flex items-center gap-3">
           <!-- Notification Bell -->
           <button (click)="navigate('/app/notifications')" class="relative p-2 hover:bg-gray-100 rounded-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -162,24 +143,19 @@
 
           <!-- User Profile Dropdown -->
           <div class="relative">
-            <button (click)="showUserMenu = !showUserMenu" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg">
-              <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">{{ currentUserInitial }}</div>
+            <button (click)="showUserMenu = !showUserMenu" class="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium" [ngClass]="theme.avatarBg">{{ currentUserInitial }}</div>
             </button>
             @if (showUserMenu) {
               <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <button (click)="navigate('/app/profile'); showUserMenu=false" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-                  Profile
-                </button>
-                <button (click)="navigate('/app/settings'); showUserMenu=false" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                  Settings
-                </button>
+                <div class="px-4 py-2 border-b">
+                  <p class="text-sm font-medium">{{ currentUserName }}</p>
+                  <p class="text-xs text-gray-500 truncate">{{ currentUserEmail }}</p>
+                </div>
+                <button (click)="navigate('/app/profile'); showUserMenu=false" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Profile</button>
+                <button (click)="navigate('/app/settings'); showUserMenu=false" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Settings</button>
                 <hr class="my-1"/>
-                <button (click)="handleLogout()" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2 text-red-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                  Logout
-                </button>
+                <button (click)="handleLogout()" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600">Logout</button>
               </div>
             }
           </div>
@@ -192,55 +168,4 @@
       <router-outlet />
     </main>
   </div>
-
-  <!-- Floating Chatbot -->
-  <div class="fixed bottom-6 right-6 z-50">
-    @if (chatOpen) {
-      <div class="bg-white rounded-lg shadow-2xl w-80 flex flex-col h-96">
-        <!-- Chat Header -->
-        <div class="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
-            </svg>
-            <span class="font-medium">Support Assistant</span>
-          </div>
-          <button (click)="chatOpen=false" class="hover:bg-blue-700 rounded p-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-        <!-- Chat Messages -->
-        <div class="flex-1 p-4 overflow-y-auto bg-gray-50">
-          <div class="bg-white rounded-lg p-3 mb-2 shadow-sm">
-            <p class="text-sm">Hello! How can I help you today?</p>
-          </div>
-          <p class="text-xs text-gray-500 mb-2">Quick Actions:</p>
-          @for (action of quickActions; track action) {
-            <button class="block w-full text-left bg-white rounded-lg p-2 mb-2 text-sm hover:bg-blue-50 border border-gray-200">{{ action }}</button>
-          }
-        </div>
-        <!-- Chat Input -->
-        <div class="p-3 border-t border-gray-200">
-          <div class="flex gap-2">
-            <input
-              type="text"
-              [(ngModel)]="chatMessage"
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              placeholder="Type your message..."
-            />
-            <button class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    } @else {
-      <button (click)="chatOpen=true" class="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
-        </svg>
-      </button>
-    }
-  </div>
-
 </div>

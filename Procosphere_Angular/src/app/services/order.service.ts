@@ -51,4 +51,8 @@ export class OrderService {
   reject(id: number): Observable<ApiResponse<OrderResponse>> {
     return this.http.patch<ApiResponse<OrderResponse>>(`${this.base}/${id}/reject`, {});
   }
+
+  delete(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.base}/${id}`);
+  }
 }

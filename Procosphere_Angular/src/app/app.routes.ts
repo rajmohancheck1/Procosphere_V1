@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard } from './guards/auth.guard';
+import { authGuard, adminGuard, roleGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -30,7 +30,23 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('./pages/product-detail/product-detail.component').then(
+            (m) => m.ProductDetailComponent
+          ),
+      },
+      {
+        path: 'my-products',
+        canActivate: [roleGuard(['SUPPLIER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./pages/my-products/my-products.component').then(
+            (m) => m.MyProductsComponent
+          ),
+      },
+      {
         path: 'create-order',
+        canActivate: [roleGuard(['USER', 'SUPPLIER'])],
         loadComponent: () =>
           import('./pages/create-order/create-order.component').then(
             (m) => m.CreateOrderComponent
@@ -44,6 +60,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'orders/:id',
+        loadComponent: () =>
+          import('./pages/order-detail/order-detail.component').then(
+            (m) => m.OrderDetailComponent
+          ),
+      },
+      {
         path: 'delivery',
         loadComponent: () =>
           import('./pages/delivery-tracking/delivery-tracking.component').then(
@@ -52,6 +75,7 @@ export const routes: Routes = [
       },
       {
         path: 'inventory',
+        canActivate: [roleGuard(['ADMIN', 'MANAGER'])],
         loadComponent: () =>
           import(
             './pages/inventory-monitoring/inventory-monitoring.component'
@@ -65,18 +89,18 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'profile',
-        loadComponent: () =>
-          import('./pages/profile/profile.component').then(
-            (m) => m.ProfileComponent
-          ),
-      },
-      {
         path: 'users',
         canActivate: [adminGuard],
         loadComponent: () =>
           import('./pages/user-management/user-management.component').then(
             (m) => m.UserManagementComponent
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./pages/profile/profile.component').then(
+            (m) => m.ProfileComponent
           ),
       },
       {

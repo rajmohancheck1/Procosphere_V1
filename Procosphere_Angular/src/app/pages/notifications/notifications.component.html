@@ -10,6 +10,12 @@
     </div>
   }
 
+  @if (hiddenByFilterCount > 0) {
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600">
+      {{ hiddenByFilterCount }} notification(s) hidden by your notification preferences. Enable them in Settings to see them here.
+    </div>
+  }
+
   <!-- Controls -->
   <div class="bg-white rounded-lg shadow p-4">
     <div class="flex items-center justify-between">

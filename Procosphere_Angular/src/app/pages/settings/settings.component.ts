@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SettingsService, AppSettings } from '../../services/settings.service';
 
 @Component({
   selector: 'app-settings',
@@ -8,23 +9,11 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule],
   templateUrl: './settings.component.html',
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   savedMessage = '';
+  settings!: AppSettings;
 
-  settings = {
-    emailNotifications: true,
-    orderUpdates: true,
-    lowStockAlerts: true,
-    deliveryAlerts: true,
-    weeklyReports: false,
-    twoFactorAuth: false,
-    sessionTimeout: '30',
-    theme: 'light',
-    language: 'en',
-    emailFrequency: 'instant',
-  };
-
-  themes = ['light', 'dark', 'auto'];
+  themes: ('light' | 'dark' | 'auto')[] = ['light', 'dark', 'auto'];
 
   emailFrequencies = [
     { value: 'instant', label: 'Instant', desc: 'Get emails immediately' },
@@ -32,27 +21,23 @@ export class SettingsComponent {
     { value: 'weekly',  label: 'Weekly Digest', desc: 'Once per week summary' },
   ];
 
+  constructor(private settingsService: SettingsService) {}
+
+  ngOnInit() {
+    this.settings = { ...this.settingsService.value };
+  }
+
   handleSave() {
-    this.savedMessage = 'Settings saved successfully!';
+    this.settingsService.save({ ...this.settings });
+    this.savedMessage = 'Settings saved.';
     setTimeout(() => (this.savedMessage = ''), 3000);
   }
 
   handleReset() {
-    if (confirm('Reset all settings to default values?')) {
-      this.settings = {
-        emailNotifications: true,
-        orderUpdates: true,
-        lowStockAlerts: true,
-        deliveryAlerts: true,
-        weeklyReports: false,
-        twoFactorAuth: false,
-        sessionTimeout: '30',
-        theme: 'light',
-        language: 'en',
-        emailFrequency: 'instant',
-      };
-      this.savedMessage = 'Settings have been reset';
-      setTimeout(() => (this.savedMessage = ''), 3000);
-    }
+    if (!confirm('Reset all settings to default values?')) return;
+    this.settingsService.reset();
+    this.settings = { ...this.settingsService.value };
+    this.savedMessage = 'Settings reset to defaults.';
+    setTimeout(() => (this.savedMessage = ''), 3000);
   }
 }

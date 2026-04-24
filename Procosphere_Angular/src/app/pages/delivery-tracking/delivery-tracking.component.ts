@@ -71,7 +71,7 @@ export class DeliveryTrackingComponent implements OnInit {
       OUT_FOR_DELIVERY: 4, 'Out for Delivery': 4,
       DELIVERED: 5, Delivered: 5,
     };
-    const currentIdx = statusOrder[d.status] ?? 1;
+    const currentIdx = statusOrder[d.status || ''] ?? 1;
     const progress = Math.round((currentIdx / (steps.length - 1)) * 100);
 
     const timeline: TimelineStep[] = steps.map((label, i) => ({
@@ -87,7 +87,7 @@ export class DeliveryTrackingComponent implements OnInit {
       trackingId: d.trackingNumber || `TRK-${d.deliveryId}`,
       orderId: d.orderId,
       orderTitle: d.orderTitle || `ORD-${d.orderId}`,
-      status: d.status,
+      status: d.status || 'PENDING',
       estimatedDelivery: d.deliveredDate?.split('T')[0] ?? '—',
       progress,
       timeline,

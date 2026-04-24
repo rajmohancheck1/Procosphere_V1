@@ -38,8 +38,10 @@ public class User implements UserDetails {
     @Column(length = 20)
     private String phone;
 
+    // columnDefinition bypasses Hibernate 6's auto-generated CHECK constraint
+    // so new enum values (e.g. SUPPLIER) don't require manual DB migrations.
     @Enumerated(EnumType.STRING)
-    @Column(length = 50)
+    @Column(length = 50, columnDefinition = "varchar(50)")
     private Role role;
 
     @Column(length = 100)

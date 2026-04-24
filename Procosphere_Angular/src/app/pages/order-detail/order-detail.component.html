@@ -1,0 +1,212 @@
+<div class="max-w-5xl mx-auto space-y-6">
+  <button (click)="goBack()" class="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    Back
+  </button>
+
+  @if (errorMsg) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800"><strong>Error:</strong> {{ errorMsg }}</div>
+  }
+  @if (successMsg) {
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">{{ successMsg }}</div>
+  }
+
+  @if (isLoading) {
+    <div class="bg-white rounded-lg shadow p-12 text-center text-gray-500">Loading order...</div>
+  } @else if (!order) {
+    <div class="bg-white rounded-lg shadow p-12 text-center text-gray-500">Order not found.</div>
+  } @else {
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <p class="text-xs text-gray-500 mb-1">ORDER</p>
+          <h1 class="text-2xl font-bold mb-1">#ORD-{{ order.orderId }} · {{ order.orderTitle }}</h1>
+          <p class="text-sm text-gray-600">Created by {{ order.createdByName }} on {{ formatDateOnly(order.createdAt) }}</p>
+        </div>
+        <div class="text-right">
+          <span class="px-3 py-1 text-sm font-medium rounded-full" [ngClass]="statusColors[order.status] || 'bg-gray-100 text-gray-800'">{{ order.status }}</span>
+          <p class="text-2xl font-bold mt-2">${{ totalAmount.toFixed(2) }}</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+        @if (canApprove) {
+          <button (click)="approve()" [disabled]="busy" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-60">✓ Approve</button>
+        }
+        @if (canReject) {
+          <button (click)="reject()" [disabled]="busy" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-60">✕ Reject</button>
+        }
+        @if (canMarkOrdered) {
+          <button (click)="markOrdered()" [disabled]="busy" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-60">Mark as Ordered</button>
+        }
+        @if (canMarkReceived) {
+          <button (click)="markReceived()" [disabled]="busy" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-60">Mark as Received</button>
+        }
+        @if (canMarkReturned) {
+          <button (click)="markReturned()" [disabled]="busy" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium disabled:opacity-60">Mark as Returned</button>
+        }
+        @if (canCancel) {
+          <button (click)="cancelOrder()" [disabled]="busy" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium disabled:opacity-60">Cancel Order</button>
+        }
+        @if (canDelete) {
+          <button (click)="deleteOrder()" [disabled]="busy" class="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 font-medium disabled:opacity-60 ml-auto">Delete</button>
+        }
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold mb-4">Order Timeline</h2>
+      <div class="flex items-center gap-0 overflow-x-auto">
+        @for (step of timeline; track step.label; let i = $index) {
+          <div class="flex-1 min-w-[100px]">
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                [class.bg-blue-600]="step.current"
+                [class.bg-green-500]="step.reached && !step.current && step.status !== 'REJECTED' && step.status !== 'CANCELLED' && step.status !== 'RETURNED'"
+                [class.bg-red-500]="step.status === 'REJECTED' || step.status === 'CANCELLED'"
+                [class.bg-orange-500]="step.status === 'RETURNED'"
+                [class.bg-gray-300]="!step.reached">
+                {{ i + 1 }}
+              </div>
+              @if (i < timeline.length - 1) {
+                <div class="flex-1 h-1 mx-1"
+                  [class.bg-green-500]="step.reached && timeline[i + 1].reached"
+                  [class.bg-gray-200]="!(step.reached && timeline[i + 1].reached)"></div>
+              }
+            </div>
+            <p class="text-xs mt-2" [class.font-semibold]="step.current" [class.text-gray-900]="step.reached" [class.text-gray-400]="!step.reached">
+              {{ step.label }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Order info grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-3">Order Details</h2>
+        <dl class="space-y-2 text-sm">
+          <div class="flex"><dt class="w-40 text-gray-500">Department</dt><dd class="font-medium">{{ order.department || '—' }}</dd></div>
+          <div class="flex"><dt class="w-40 text-gray-500">Priority</dt><dd class="font-medium">{{ order.priority || '—' }}</dd></div>
+          <div class="flex"><dt class="w-40 text-gray-500">Payment Method</dt><dd class="font-medium">{{ order.paymentMethod || '—' }}</dd></div>
+          <div class="flex"><dt class="w-40 text-gray-500">Budget Code</dt><dd class="font-medium">{{ order.budgetCode || '—' }}</dd></div>
+          <div class="flex"><dt class="w-40 text-gray-500">Expected Delivery</dt><dd class="font-medium">{{ formatDateOnly(order.expectedDelivery) }}</dd></div>
+          <div class="flex"><dt class="w-40 text-gray-500">Supplier</dt><dd class="font-medium">Supplier #{{ order.supplierId ?? '—' }}</dd></div>
+        </dl>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-3">Items ({{ itemCount }})</h2>
+        @if (itemCount === 0) {
+          <p class="text-sm text-gray-500">No items.</p>
+        } @else {
+          <table class="w-full text-sm">
+            <thead class="border-b border-gray-200">
+              <tr class="text-left text-xs text-gray-500 uppercase">
+                <th class="py-2">Product</th>
+                <th class="py-2 text-right">Qty</th>
+                <th class="py-2 text-right">Price</th>
+                <th class="py-2 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (item of order.items; track item.orderItemId) {
+                <tr>
+                  <td class="py-2">{{ item.productName }}</td>
+                  <td class="py-2 text-right">{{ item.quantity }}</td>
+                  <td class="py-2 text-right">${{ (item.price ?? 0).toFixed(2) }}</td>
+                  <td class="py-2 text-right font-medium">${{ ((item.price ?? 0) * item.quantity).toFixed(2) }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot class="border-t border-gray-200">
+              <tr>
+                <td colspan="3" class="py-2 text-right font-semibold">Total</td>
+                <td class="py-2 text-right font-bold text-blue-600">${{ totalAmount.toFixed(2) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        }
+      </div>
+    </div>
+
+    <!-- Deliveries -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">Delivery Tracking</h2>
+        @if (canManageDeliveries) {
+          <button (click)="openCreateDelivery()" class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ Add tracking</button>
+        }
+      </div>
+
+      @if (deliveries.length === 0) {
+        <p class="text-sm text-gray-500 py-4 text-center">No delivery records yet.</p>
+      } @else {
+        <table class="w-full text-sm">
+          <thead class="border-b border-gray-200">
+            <tr class="text-left text-xs text-gray-500 uppercase">
+              <th class="py-2">Tracking #</th>
+              <th class="py-2">Status</th>
+              <th class="py-2">Shipped</th>
+              <th class="py-2">Delivered</th>
+              @if (canManageDeliveries) { <th class="py-2 text-right">Actions</th> }
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (d of deliveries; track d.deliveryId) {
+              <tr>
+                <td class="py-2 font-medium">{{ d.trackingNumber || 'TRK-' + d.deliveryId }}</td>
+                <td class="py-2"><span class="px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="deliveryStatusColors[d.status || ''] || 'bg-gray-100 text-gray-800'">{{ d.status || 'PENDING' }}</span></td>
+                <td class="py-2 text-gray-600">{{ formatDate(d.shippedDate) }}</td>
+                <td class="py-2 text-gray-600">{{ formatDate(d.deliveredDate) }}</td>
+                @if (canManageDeliveries) {
+                  <td class="py-2 text-right">
+                    <button (click)="openEditDelivery(d)" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Edit</button>
+                    <button (click)="deleteDelivery(d)" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  <!-- Delivery Modal -->
+  @if (showDeliveryModal) {
+    <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="closeDeliveryModal()">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-semibold mb-4">{{ editingDelivery ? 'Edit' : 'Add' }} Delivery Tracking</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
+            <input type="text" [(ngModel)]="deliveryForm.trackingNumber" placeholder="Optional"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select [(ngModel)]="deliveryForm.status"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              @for (s of deliveryStatuses; track s) { <option [value]="s">{{ s }}</option> }
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              SHIPPED/IN_TRANSIT/OUT_FOR_DELIVERY auto-stamps shipped date. DELIVERED auto-stamps delivered date and advances the order status if it was ORDERED.
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <button (click)="saveDelivery()" [disabled]="busy"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-60 flex-1">
+            {{ busy ? 'Saving...' : 'Save' }}
+          </button>
+          <button (click)="closeDeliveryModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
