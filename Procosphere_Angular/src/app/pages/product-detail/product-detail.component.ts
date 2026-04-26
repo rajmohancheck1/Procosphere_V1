@@ -5,11 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService, ProductResponse, ProductRequest } from '../../services/product.service';
 import { CategoryService, CategoryResponse } from '../../services/category.service';
 import { AuthService, Role } from '../../services/auth.service';
+import { FileService } from '../../services/file.service';
+import { ImageUploadComponent } from '../../components/image-upload/image-upload.component';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImageUploadComponent],
   templateUrl: './product-detail.component.html',
 })
 export class ProductDetailComponent implements OnInit {
@@ -32,7 +34,11 @@ export class ProductDetailComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private authService: AuthService,
+    private fileService: FileService,
   ) {}
+
+  /** Resolves "/uploads/..." image paths to absolute URLs for <img> tags. */
+  get displayImageUrl(): string { return this.fileService.toAbsoluteUrl(this.product?.imageUrl || ''); }
 
   ngOnInit() {
     const idParam = this.route.snapshot.paramMap.get('id');

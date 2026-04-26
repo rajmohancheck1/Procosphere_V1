@@ -6,11 +6,13 @@ import { forkJoin } from 'rxjs';
 import { ProductService, ProductResponse, ProductRequest } from '../../services/product.service';
 import { CategoryService, CategoryResponse } from '../../services/category.service';
 import { AuthService } from '../../services/auth.service';
+import { FileService } from '../../services/file.service';
+import { ImageUploadComponent } from '../../components/image-upload/image-upload.component';
 
 @Component({
   selector: 'app-my-products',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImageUploadComponent],
   templateUrl: './my-products.component.html',
 })
 export class MyProductsComponent implements OnInit {
@@ -33,8 +35,12 @@ export class MyProductsComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private authService: AuthService,
+    private fileService: FileService,
     private router: Router,
   ) {}
+
+  /** Helper for the table — resolves "/uploads/..." paths to absolute URLs. */
+  imageUrl(p: ProductResponse): string { return this.fileService.toAbsoluteUrl(p.imageUrl || ''); }
 
   ngOnInit() { this.load(); }
 

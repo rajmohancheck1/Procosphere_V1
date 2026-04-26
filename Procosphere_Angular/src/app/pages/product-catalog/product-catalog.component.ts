@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductService, ProductResponse } from '../../services/product.service';
 import { CategoryService, CategoryResponse } from '../../services/category.service';
+import { FileService } from '../../services/file.service';
 
 @Component({
   selector: 'app-product-catalog',
@@ -24,7 +25,13 @@ export class ProductCatalogComponent implements OnInit {
 
   allProducts: ProductResponse[] = [];
 
-  constructor(private productService: ProductService, private categoryService: CategoryService) {}
+  constructor(
+    private productService: ProductService,
+    private categoryService: CategoryService,
+    private fileService: FileService,
+  ) {}
+
+  imageUrl(p: ProductResponse): string { return this.fileService.toAbsoluteUrl(p.imageUrl || ''); }
 
   ngOnInit() {
     this.categoryService.getAll().subscribe({

@@ -63,7 +63,7 @@
       @for (product of filteredProducts; track product.productId) {
         <a [routerLink]="['/app/products', product.productId]" class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden block">
           <div class="aspect-video bg-gray-200 overflow-hidden">
-            <img [src]="product.imageUrl || ''" [alt]="product.productName" class="w-full h-full object-cover" (error)="$any($event.target).style.display='none'" />
+            <img [src]="imageUrl(product)" [alt]="product.productName" class="w-full h-full object-cover" (error)="$any($event.target).style.display='none'" />
           </div>
           <div class="p-4">
             <div class="flex items-start justify-between mb-2">
