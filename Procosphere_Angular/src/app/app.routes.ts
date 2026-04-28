@@ -46,7 +46,8 @@ export const routes: Routes = [
       },
       {
         path: 'create-order',
-        canActivate: [roleGuard(['USER', 'SUPPLIER'])],
+        // MANAGER/ADMIN may reach this via "Create Reorder" actions.
+        canActivate: [roleGuard(['USER', 'SUPPLIER', 'MANAGER', 'ADMIN'])],
         loadComponent: () =>
           import('./pages/create-order/create-order.component').then(
             (m) => m.CreateOrderComponent

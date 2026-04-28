@@ -70,7 +70,6 @@ export class MainLayoutComponent implements OnInit {
     // Account section (all)
     { path: '/app/notifications',  label: 'Notifications',        icon: 'bell',             roles: ['ADMIN','MANAGER','USER','SUPPLIER'], section: 'ACCOUNT' },
     { path: '/app/profile',        label: 'My Profile',           icon: 'user',             roles: ['ADMIN','MANAGER','USER','SUPPLIER'], section: 'ACCOUNT' },
-    { path: '/app/settings',       label: 'Settings',             icon: 'settings',         roles: ['ADMIN','MANAGER','USER','SUPPLIER'], section: 'ACCOUNT' },
   ];
 
   // Role → Theme

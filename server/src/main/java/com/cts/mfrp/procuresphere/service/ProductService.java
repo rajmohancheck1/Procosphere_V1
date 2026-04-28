@@ -7,6 +7,7 @@ import com.cts.mfrp.procuresphere.model.Category;
 import com.cts.mfrp.procuresphere.model.Product;
 import com.cts.mfrp.procuresphere.repository.CategoryRepository;
 import com.cts.mfrp.procuresphere.repository.ProductRepository;
+import com.cts.mfrp.procuresphere.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getAllProducts(String search, Long categoryId, Boolean isInStock) {
@@ -81,9 +83,21 @@ public class ProductService {
     }
 
     private ProductResponse toResponse(Product p) {
+        // Resolve supplier name from the user identified by supplierId.
+        String supplierName = null;
+        if (p.getSupplierId() != null) {
+            supplierName = userRepository.findById(p.getSupplierId().longValue())
+                    .map(u -> {
+                        String full = ((u.getFirstName() == null ? "" : u.getFirstName()) + " "
+                                     + (u.getLastName()  == null ? "" : u.getLastName())).trim();
+                        return full.isEmpty() ? u.getEmail() : full;
+                    })
+                    .orElse(null);
+        }
         return ProductResponse.builder()
                 .productId(p.getProductId())
                 .supplierId(p.getSupplierId())
+                .supplierName(supplierName)
                 .categoryId(p.getCategory() != null ? p.getCategory().getCategoryId() : null)
                 .categoryName(p.getCategory() != null ? p.getCategory().getCategoryName() : null)
                 .productName(p.getProductName())

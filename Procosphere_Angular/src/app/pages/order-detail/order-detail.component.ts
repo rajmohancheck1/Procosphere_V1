@@ -99,7 +99,8 @@ export class OrderDetailComponent implements OnInit {
     return false;
   }
   get canDelete(): boolean { return this.role === 'ADMIN'; }
-  get canManageDeliveries(): boolean { return this.isManagerOrAdmin; }
+  /** Suppliers ship orders, so they update tracking too. Managers/Admins can audit. */
+  get canManageDeliveries(): boolean { return this.isManagerOrAdmin || this.role === 'SUPPLIER'; }
 
   // ---- Status actions ----
   changeStatus(newStatus: string, confirmMsg?: string) {

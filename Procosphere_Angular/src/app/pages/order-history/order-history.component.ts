@@ -15,6 +15,8 @@ export class OrderHistoryComponent implements OnInit {
   selectedStatus = 'All';
   startDate = '';
   endDate = '';
+  /** Today, used as max for the date filters so users can't pick a future date by mistake. */
+  todayIso = new Date().toISOString().split('T')[0];
   currentPage = 1;
   itemsPerPage = 5;
   isLoading = true;

@@ -7,7 +7,7 @@ import { UserService, UserResponse } from '../../services/user.service';
 import { DashboardService, DashboardSummaryResponse } from '../../services/dashboard.service';
 import { AuthService, Role } from '../../services/auth.service';
 
-type Tab = 'users' | 'audit' | 'settings';
+type Tab = 'users';
 
 @Component({
   selector: 'app-admin-dashboard',

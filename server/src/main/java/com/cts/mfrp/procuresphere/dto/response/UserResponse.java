@@ -19,4 +19,6 @@ public class UserResponse {
     private Role role;
     private String department;
     private String company;
+    private String address;
+    private String avatarUrl;
 }

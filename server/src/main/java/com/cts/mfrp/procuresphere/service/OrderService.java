@@ -83,8 +83,51 @@ public class OrderService {
     public OrderResponse updateOrderStatus(Long id, String status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        order.setStatus(status);
+
+        String oldStatus = order.getStatus();
+        String newStatus = status != null ? status.toUpperCase() : oldStatus;
+
+        // Stock adjustment side-effects on status transitions:
+        //  - APPROVED (from non-stock-deducting state) → decrement stock for each item
+        //  - CANCELLED / RETURNED / REJECTED (from APPROVED/ORDERED/RECEIVED) → restore stock
+        boolean wasDeducted = isStockDeductedState(oldStatus);
+        boolean willBeDeducted = isStockDeductedState(newStatus);
+
+        if (!wasDeducted && willBeDeducted) {
+            adjustStock(order, -1);
+        } else if (wasDeducted && !willBeDeducted) {
+            adjustStock(order, +1);
+        }
+
+        order.setStatus(newStatus);
         return toResponse(orderRepository.save(order));
+    }
+
+    /** States in which the order's items are considered "consumed" from inventory. */
+    private boolean isStockDeductedState(String status) {
+        if (status == null) return false;
+        return switch (status.toUpperCase()) {
+            case "APPROVED", "ORDERED", "RECEIVED" -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Adjusts stock for every item in the order. direction = -1 to deduct,
+     * +1 to restore. Caps at 0 (never goes negative) and toggles isInStock.
+     */
+    private void adjustStock(Order order, int direction) {
+        if (order.getItems() == null) return;
+        for (OrderItem item : order.getItems()) {
+            Product p = item.getProduct();
+            if (p == null) continue;
+            int current = p.getStockQuantity() != null ? p.getStockQuantity() : 0;
+            int delta = direction * item.getQuantity();
+            int next = Math.max(0, current + delta);
+            p.setStockQuantity(next);
+            p.setIsInStock(next > 0);
+            productRepository.save(p);
+        }
     }
 
     @Transactional
@@ -113,6 +156,16 @@ public class OrderService {
     }
 
     private OrderResponse toResponse(Order o) {
+        String supplierName = null;
+        if (o.getSupplierId() != null) {
+            supplierName = userRepository.findById(o.getSupplierId().longValue())
+                    .map(u -> {
+                        String full = ((u.getFirstName() == null ? "" : u.getFirstName()) + " "
+                                     + (u.getLastName()  == null ? "" : u.getLastName())).trim();
+                        return full.isEmpty() ? u.getEmail() : full;
+                    })
+                    .orElse(null);
+        }
         List<OrderItemResponse> itemResponses = o.getItems() != null
                 ? o.getItems().stream().map(i -> OrderItemResponse.builder()
                         .orderItemId(i.getOrderItemId())
@@ -129,6 +182,7 @@ public class OrderService {
                 .createdByName(o.getCreatedBy() != null ?
                         o.getCreatedBy().getFirstName() + " " + o.getCreatedBy().getLastName() : null)
                 .supplierId(o.getSupplierId())
+                .supplierName(supplierName)
                 .orderTitle(o.getOrderTitle())
                 .department(o.getDepartment())
                 .priority(o.getPriority())

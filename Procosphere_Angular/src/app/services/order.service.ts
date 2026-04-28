@@ -14,7 +14,8 @@ export interface OrderItemResponse {
   orderItemId: number; productId: number; productName: string; quantity: number; price: number;
 }
 export interface OrderResponse {
-  orderId: number; createdBy: number; createdByName: string; supplierId: number;
+  orderId: number; createdBy: number; createdByName: string;
+  supplierId: number; supplierName?: string | null;
   orderTitle: string; department: string; priority: string; paymentMethod: string;
   budgetCode: string; expectedDelivery: string; status: string;
   totalAmount: number | null; createdAt: string; items: OrderItemResponse[];

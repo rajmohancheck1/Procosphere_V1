@@ -18,6 +18,7 @@ public class OrderResponse {
     private Long createdBy;
     private String createdByName;
     private Integer supplierId;
+    private String supplierName;
     private String orderTitle;
     private String department;
     private String priority;

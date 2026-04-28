@@ -57,7 +57,7 @@
 
             <div class="flex flex-wrap gap-2 mt-auto">
               @if (canOrder) {
-                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Add to Order</button>
+                <button (click)="addToOrder()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Add to Order</button>
               }
               @if (canEdit) {
                 <button (click)="startEdit()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">Edit</button>

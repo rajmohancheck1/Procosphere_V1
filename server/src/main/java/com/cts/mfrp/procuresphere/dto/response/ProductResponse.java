@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class ProductResponse {
     private Long productId;
     private Integer supplierId;
+    private String supplierName;
     private Long categoryId;
     private String categoryName;
     private String productName;

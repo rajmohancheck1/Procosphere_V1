@@ -1,10 +1,12 @@
 package com.cts.mfrp.procuresphere.controller;
 
+import com.cts.mfrp.procuresphere.dto.request.ProfileUpdateRequest;
 import com.cts.mfrp.procuresphere.dto.response.ApiResponse;
 import com.cts.mfrp.procuresphere.dto.response.UserResponse;
 import com.cts.mfrp.procuresphere.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +30,15 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> getMe(@AuthenticationPrincipal UserDetails principal) {
         UserResponse user = userService.getByEmail(principal.getUsername());
         return ResponseEntity.ok(ApiResponse.success("User retrieved", user));
+    }
+
+    @PutMapping("/me")
+    @Operation(summary = "Update own profile (any authenticated user)")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMe(
+            @AuthenticationPrincipal UserDetails principal,
+            @Valid @RequestBody ProfileUpdateRequest body) {
+        UserResponse user = userService.updateProfile(principal.getUsername(), body);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated", user));
     }
 
     @GetMapping

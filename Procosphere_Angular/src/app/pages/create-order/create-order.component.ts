@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService, ProductResponse } from '../../services/product.service';
 import { OrderService } from '../../services/order.service';
 
@@ -23,7 +23,10 @@ export class CreateOrderComponent implements OnInit {
   products: ProductResponse[] = [];
 
   // Suppliers are derived from products' supplierId values at runtime.
-  suppliers: number[] = [];
+  suppliers: { id: number; name: string }[] = [];
+
+  /** Minimum allowed value for the Expected Delivery date input (today, no past dates). */
+  todayIso = new Date().toISOString().split('T')[0];
   paymentMethods = ['Purchase Order', 'Credit Card', 'Bank Transfer', 'Net 30'];
   deliveryMethods = ['Standard Delivery', 'Express Delivery', 'Pickup'];
 
@@ -37,15 +40,41 @@ export class CreateOrderComponent implements OnInit {
     contactPhone: '', contactEmail: '', specialInstructions: '',
   };
 
-  constructor(private router: Router, private productService: ProductService, private orderService: OrderService) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private productService: ProductService,
+    private orderService: OrderService,
+  ) {}
 
   ngOnInit() {
     this.productService.getAll().subscribe({
       next: (res) => {
         if (res.success) {
           this.products = res.data;
-          // Distinct supplierIds sorted ascending
-          this.suppliers = Array.from(new Set(res.data.map(p => p.supplierId).filter(id => id != null))).sort((a, b) => a - b);
+          // Build distinct supplier list from products with names from backend.
+          const map = new Map<number, string>();
+          for (const p of res.data) {
+            if (p.supplierId == null) continue;
+            const existing = map.get(p.supplierId);
+            const name = p.supplierName || existing || `Supplier #${p.supplierId}`;
+            map.set(p.supplierId, name);
+          }
+          this.suppliers = Array.from(map.entries())
+            .map(([id, name]) => ({ id, name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          // If a productId query param was passed (e.g. from "Add to Order" on
+          // the product detail page), pre-select that product and its supplier.
+          const preProductId = Number(this.route.snapshot.queryParamMap.get('productId'));
+          if (preProductId) {
+            const p = res.data.find(x => x.productId === preProductId);
+            if (p) {
+              this.formData.selectedProducts = [preProductId];
+              this.formData.quantities = { [preProductId]: 1 };
+              if (p.supplierId) this.formData.supplierId = p.supplierId;
+            }
+          }
         }
         this.isLoading = false;
       },
@@ -63,6 +92,7 @@ export class CreateOrderComponent implements OnInit {
       if (!this.formData.budgetCode) e['budgetCode'] = 'Budget code is required';
       else if (!/^[A-Z]{2}-\d{4}$/.test(this.formData.budgetCode)) e['budgetCode'] = 'Budget code must be in format XX-0000';
       if (!this.formData.expectedDeliveryDate) e['expectedDeliveryDate'] = 'Expected delivery date is required';
+      else if (this.formData.expectedDeliveryDate < this.todayIso) e['expectedDeliveryDate'] = 'Expected delivery cannot be in the past';
     }
     if (step === 1) {
       if (this.formData.selectedProducts.length === 0) e['selectedProducts'] = 'Please select at least one product';
@@ -79,11 +109,13 @@ export class CreateOrderComponent implements OnInit {
       if (!this.formData.deliveryAddress) e['deliveryAddress'] = 'Delivery address is required';
       if (!this.formData.deliveryCity) e['deliveryCity'] = 'City is required';
       if (!this.formData.deliveryState) e['deliveryState'] = 'State is required';
-      if (!this.formData.deliveryZip) e['deliveryZip'] = 'ZIP code is required';
-      else if (!/^\d{5}(-\d{4})?$/.test(this.formData.deliveryZip)) e['deliveryZip'] = 'Invalid ZIP code format';
+      if (!this.formData.deliveryZip) e['deliveryZip'] = 'PIN code is required';
+      else if (!/^[1-9][0-9]{5}$/.test(this.formData.deliveryZip)) e['deliveryZip'] = 'PIN code must be 6 digits (e.g. 560001)';
       if (!this.formData.contactPerson) e['contactPerson'] = 'Contact person is required';
       if (!this.formData.contactPhone) e['contactPhone'] = 'Contact phone is required';
-      else if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(this.formData.contactPhone)) e['contactPhone'] = 'Phone must be in format (123) 456-7890';
+      else if (!this.isValidIndianPhone(this.formData.contactPhone)) {
+        e['contactPhone'] = 'Phone must be a valid Indian mobile (10 digits starting with 6-9, optionally with +91 prefix)';
+      }
       if (!this.formData.contactEmail) e['contactEmail'] = 'Contact email is required';
       else if (!/\S+@\S+\.\S+/.test(this.formData.contactEmail)) e['contactEmail'] = 'Invalid email address';
     }
@@ -176,7 +208,9 @@ export class CreateOrderComponent implements OnInit {
   isSelected(id: number): boolean { return this.formData.selectedProducts.includes(id); }
 
   updateQuantity(id: number, val: string) {
-    this.formData.quantities = { ...this.formData.quantities, [id]: Number(val) };
+    // Clamp to [1, 100] and reject NaN/negatives at the source.
+    const n = Math.max(1, Math.min(100, Math.floor(Number(val) || 0)));
+    this.formData.quantities = { ...this.formData.quantities, [id]: n };
   }
 
   calculateTotal(): number {
@@ -187,4 +221,17 @@ export class CreateOrderComponent implements OnInit {
   }
 
   getProduct(id: number): ProductResponse | undefined { return this.products.find(p => p.productId === id); }
+
+  /** Look up the friendly supplier name for the review step. */
+  supplierNameFor(id: number): string {
+    if (!id) return '—';
+    const s = this.suppliers.find(x => x.id === id);
+    return s ? s.name : `Supplier #${id}`;
+  }
+
+  /** Indian mobile: optional +91/0 prefix, then a 10-digit number starting with 6-9. */
+  private isValidIndianPhone(phone: string): boolean {
+    const digits = phone.replace(/[\s-]/g, '');
+    return /^(\+91|0)?[6-9]\d{9}$/.test(digits);
+  }
 }

@@ -1,5 +1,6 @@
 package com.cts.mfrp.procuresphere.service;
 
+import com.cts.mfrp.procuresphere.dto.request.ProfileUpdateRequest;
 import com.cts.mfrp.procuresphere.dto.response.UserResponse;
 import com.cts.mfrp.procuresphere.exception.BadRequestException;
 import com.cts.mfrp.procuresphere.exception.ResourceNotFoundException;
@@ -52,6 +53,31 @@ public class UserService {
         return toResponse(user);
     }
 
+    /** Self-service profile update. Used by PUT /api/users/me. */
+    @Transactional
+    public UserResponse updateProfile(String currentEmail, ProfileUpdateRequest req) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentEmail));
+
+        // If email is changing, ensure uniqueness against OTHER users.
+        if (req.getEmail() != null && !req.getEmail().equalsIgnoreCase(user.getEmail())) {
+            if (userRepository.existsByEmail(req.getEmail())) {
+                throw new BadRequestException("Email '" + req.getEmail() + "' is already in use");
+            }
+            user.setEmail(req.getEmail());
+        }
+
+        if (req.getFirstName() != null)  user.setFirstName(req.getFirstName());
+        if (req.getLastName()  != null)  user.setLastName(req.getLastName());
+        if (req.getPhone()     != null)  user.setPhone(req.getPhone());
+        if (req.getDepartment()!= null)  user.setDepartment(req.getDepartment());
+        if (req.getCompany()   != null)  user.setCompany(req.getCompany());
+        if (req.getAddress()   != null)  user.setAddress(req.getAddress());
+        if (req.getAvatarUrl() != null)  user.setAvatarUrl(req.getAvatarUrl());
+
+        return toResponse(userRepository.save(user));
+    }
+
     @Transactional
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
@@ -70,6 +96,8 @@ public class UserService {
                 .role(user.getRole())
                 .department(user.getDepartment())
                 .company(user.getCompany())
+                .address(user.getAddress())
+                .avatarUrl(user.getAvatarUrl())
                 .build();
     }
 }

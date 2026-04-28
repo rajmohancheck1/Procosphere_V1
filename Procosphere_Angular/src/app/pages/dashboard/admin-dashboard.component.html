@@ -12,8 +12,7 @@
       <p class="text-gray-600">System healthy · Managing {{ totalUsers }} user(s) · {{ today }}</p>
     </div>
     <div class="flex items-center gap-3">
-      <span class="text-sm text-gray-600">Export Logs</span>
-      <button (click)="activeTab='users'" class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium">+ Manage Users</button>
+      <button (click)="navigateTo('/app/users')" class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium">+ Manage Users</button>
     </div>
   </div>
 
@@ -41,37 +40,12 @@
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="border-b border-gray-200">
-    <nav class="flex gap-6">
-      <button (click)="activeTab='users'"
-        class="pb-3 text-sm font-medium border-b-2 transition-colors"
-        [class.border-rose-600]="activeTab==='users'"
-        [class.text-rose-700]="activeTab==='users'"
-        [class.border-transparent]="activeTab!=='users'"
-        [class.text-gray-600]="activeTab!=='users'">
-        User Management
-      </button>
-      <button (click)="activeTab='audit'"
-        class="pb-3 text-sm font-medium border-b-2 transition-colors"
-        [class.border-rose-600]="activeTab==='audit'"
-        [class.text-rose-700]="activeTab==='audit'"
-        [class.border-transparent]="activeTab!=='audit'"
-        [class.text-gray-600]="activeTab!=='audit'">
-        Audit Logs
-      </button>
-      <button (click)="activeTab='settings'"
-        class="pb-3 text-sm font-medium border-b-2 transition-colors"
-        [class.border-rose-600]="activeTab==='settings'"
-        [class.text-rose-700]="activeTab==='settings'"
-        [class.border-transparent]="activeTab!=='settings'"
-        [class.text-gray-600]="activeTab!=='settings'">
-        System Settings
-      </button>
-    </nav>
+  <!-- Section header -->
+  <div class="border-b border-gray-200 pb-3">
+    <h2 class="text-lg font-semibold text-rose-700">User Management</h2>
   </div>
 
-  @if (activeTab === 'users') {
+  <ng-container>
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow p-4">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -152,18 +126,5 @@
         </table>
       </div>
     </div>
-  }
-
-  @if (activeTab === 'audit') {
-    <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-      <p class="text-sm">Audit logs require dedicated backend endpoints, which aren't yet exposed by this server.</p>
-      <p class="text-xs mt-2">Once available, this tab will show user sign-ins, role changes, and data modifications.</p>
-    </div>
-  }
-
-  @if (activeTab === 'settings') {
-    <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-      <p class="text-sm">System settings persistence requires dedicated backend endpoints, which aren't yet exposed by this server.</p>
-    </div>
-  }
+  </ng-container>
 </div>

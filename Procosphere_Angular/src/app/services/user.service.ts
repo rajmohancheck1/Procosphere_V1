@@ -12,7 +12,21 @@ export interface UserResponse {
   role: 'ADMIN' | 'MANAGER' | 'USER' | 'SUPPLIER';
   department: string | null;
   company: string | null;
+  address: string | null;
+  avatarUrl: string | null;
 }
+
+export interface ProfileUpdateRequest {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  department?: string;
+  company?: string;
+  address?: string;
+  avatarUrl?: string;
+}
+
 export interface ApiResponse<T> { success: boolean; message: string; data: T; }
 
 @Injectable({ providedIn: 'root' })
@@ -22,6 +36,10 @@ export class UserService {
 
   getMe(): Observable<ApiResponse<UserResponse>> {
     return this.http.get<ApiResponse<UserResponse>>(`${this.base}/me`);
+  }
+
+  updateMe(req: ProfileUpdateRequest): Observable<ApiResponse<UserResponse>> {
+    return this.http.put<ApiResponse<UserResponse>>(`${this.base}/me`, req);
   }
 
   getAll(): Observable<ApiResponse<UserResponse[]>> {

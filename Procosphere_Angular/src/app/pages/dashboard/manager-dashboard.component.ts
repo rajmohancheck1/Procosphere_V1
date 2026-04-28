@@ -212,13 +212,50 @@ export class ManagerDashboardComponent implements OnInit {
     return o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
   }
   getAmount(amt: number | null): string { return '₹' + (amt ?? 0).toLocaleString(); }
-  getSupplierName(o: OrderResponse): string { return o.createdByName || ('Supplier #' + o.supplierId); }
+  getSupplierName(o: OrderResponse): string {
+    return o.supplierName || ('Supplier #' + o.supplierId);
+  }
 
   stockSeverity(p: ProductResponse): { label: string; cls: string } {
     const q = p.stockQuantity ?? 0;
     if (q === 0) return { label: 'Critical', cls: 'bg-red-100 text-red-800' };
     if (q <= 5)  return { label: 'Critical', cls: 'bg-red-100 text-red-800' };
     return             { label: 'Low',      cls: 'bg-yellow-100 text-yellow-800' };
+  }
+
+  /** Width of the per-row stock bar (0–100). 25 units = full bar. */
+  stockBarPercent(p: ProductResponse): number {
+    const q = p.stockQuantity ?? 0;
+    return Math.min(100, Math.round((q / 25) * 100));
+  }
+
+  /** Color of the per-row stock bar based on remaining quantity. */
+  stockBarClass(p: ProductResponse): string {
+    const q = p.stockQuantity ?? 0;
+    if (q === 0) return 'bg-red-500';
+    if (q <= 5)  return 'bg-red-500';
+    if (q <= 10) return 'bg-yellow-500';
+    return 'bg-green-500';
+  }
+
+  /** Aggregated breakdown for the Stock Level Overview chart. */
+  get stockOverviewData(): { label: string; count: number; percent: number; barClass: string }[] {
+    const total = this.products.length || 1;
+    const out      = this.products.filter(p => (p.stockQuantity ?? 0) === 0).length;
+    const critical = this.products.filter(p => { const q = p.stockQuantity ?? 0; return q > 0 && q <= 5; }).length;
+    const low      = this.products.filter(p => { const q = p.stockQuantity ?? 0; return q > 5 && q <= 10; }).length;
+    const healthy  = this.products.filter(p => (p.stockQuantity ?? 0) > 10).length;
+    return [
+      { label: 'Healthy (>10)',        count: healthy,  percent: Math.round((healthy  / total) * 100), barClass: 'bg-green-500'  },
+      { label: 'Low (6–10)',           count: low,      percent: Math.round((low      / total) * 100), barClass: 'bg-yellow-500' },
+      { label: 'Critical (1–5)',       count: critical, percent: Math.round((critical / total) * 100), barClass: 'bg-red-500'    },
+      { label: 'Out of Stock (0)',     count: out,      percent: Math.round((out      / total) * 100), barClass: 'bg-gray-700'   },
+    ];
+  }
+
+  /** Manager triggers a reorder by jumping to Create Order with this product preselected. */
+  createReorder(p: ProductResponse) {
+    this.router.navigate(['/app/create-order'], { queryParams: { productId: p.productId } });
   }
 
   private flashSuccess(msg: string) { this.successMsg = msg; setTimeout(() => this.successMsg = '', 3500); }

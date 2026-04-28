@@ -58,7 +58,7 @@
             <select [(ngModel)]="formData.supplierId" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               [class.border-red-500]="errors['supplierId']" [class.border-gray-300]="!errors['supplierId']">
               <option [ngValue]="0">Select supplier</option>
-              @for (s of suppliers; track s) { <option [ngValue]="s">Supplier #{{ s }}</option> }
+              @for (s of suppliers; track s.id) { <option [ngValue]="s.id">{{ s.name }}</option> }
             </select>
             @if (errors['supplierId']) { <p class="text-sm text-red-600 mt-1">{{ errors['supplierId'] }}</p> }
           </div>
@@ -102,7 +102,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date *</label>
-            <input type="date" [(ngModel)]="formData.expectedDeliveryDate"
+            <input type="date" [(ngModel)]="formData.expectedDeliveryDate" [min]="todayIso"
               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               [class.border-red-500]="errors['expectedDeliveryDate']" [class.border-gray-300]="!errors['expectedDeliveryDate']" />
             @if (errors['expectedDeliveryDate']) { <p class="text-sm text-red-600 mt-1">{{ errors['expectedDeliveryDate'] }}</p> }
@@ -232,8 +232,9 @@
             @if (errors['deliveryState']) { <p class="text-sm text-red-600 mt-1">{{ errors['deliveryState'] }}</p> }
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
-            <input type="text" [(ngModel)]="formData.deliveryZip" placeholder="e.g., 94105"
+            <label class="block text-sm font-medium text-gray-700 mb-1">PIN Code *</label>
+            <input type="text" [(ngModel)]="formData.deliveryZip" placeholder="e.g. 560001"
+              maxlength="6" inputmode="numeric"
               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               [class.border-red-500]="errors['deliveryZip']" [class.border-gray-300]="!errors['deliveryZip']" />
             @if (errors['deliveryZip']) { <p class="text-sm text-red-600 mt-1">{{ errors['deliveryZip'] }}</p> }
@@ -250,7 +251,8 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone *</label>
-            <input type="tel" [(ngModel)]="formData.contactPhone" placeholder="(123) 456-7890"
+            <input type="tel" [(ngModel)]="formData.contactPhone" placeholder="+91 98765 43210"
+              inputmode="tel"
               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               [class.border-red-500]="errors['contactPhone']" [class.border-gray-300]="!errors['contactPhone']" />
             @if (errors['contactPhone']) { <p class="text-sm text-red-600 mt-1">{{ errors['contactPhone'] }}</p> }
@@ -282,7 +284,7 @@
           <h3 class="font-semibold text-gray-700 mb-3">Order Details</h3>
           <div class="grid grid-cols-2 gap-2 text-sm">
             <p class="text-gray-600">Order Title:</p><p class="font-medium">{{ formData.orderTitle }}</p>
-            <p class="text-gray-600">Supplier:</p><p class="font-medium">Supplier #{{ formData.supplierId }}</p>
+            <p class="text-gray-600">Supplier:</p><p class="font-medium">{{ supplierNameFor(formData.supplierId) }}</p>
             <p class="text-gray-600">Department:</p><p class="font-medium">{{ formData.department }}</p>
             <p class="text-gray-600">Payment Method:</p><p class="font-medium">{{ formData.paymentMethod }}</p>
             <p class="text-gray-600">Budget Code:</p><p class="font-medium">{{ formData.budgetCode }}</p>

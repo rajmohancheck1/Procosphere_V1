@@ -136,4 +136,9 @@ export class ProductDetailComponent implements OnInit {
   }
 
   goBack() { history.length > 1 ? history.back() : this.router.navigate(['/app/products']); }
+
+  addToOrder() {
+    if (!this.product) return;
+    this.router.navigate(['/app/create-order'], { queryParams: { productId: this.product.productId } });
+  }
 }

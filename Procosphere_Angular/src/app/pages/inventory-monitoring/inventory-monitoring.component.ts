@@ -1,10 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { ProductService, ProductResponse } from '../../services/product.service';
 
 interface InventoryItem {
-  id: string; name: string; currentStock: number;
-  minRequired: number; suggestedReorder: number; status: string;
+  productId: number;
+  id: string;
+  name: string;
+  currentStock: number;
+  minRequired: number;
+  suggestedReorder: number;
+  status: 'Critical' | 'Low Stock' | 'In Stock';
 }
 
 @Component({
@@ -25,7 +31,10 @@ export class InventoryMonitoringComponent implements OnInit {
 
   inventoryItems: InventoryItem[] = [];
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
     this.productService.getAll().subscribe({
@@ -44,11 +53,13 @@ export class InventoryMonitoringComponent implements OnInit {
     const stock = p.stockQuantity ?? 0;
     const minRequired = 10;
     const inStock = !!(p.inStock ?? p.isInStock);
-    const status = !inStock || stock === 0 ? 'Critical'
-                 : stock <= minRequired ? 'Low Stock'
-                 : 'In Stock';
+    const status: InventoryItem['status'] =
+      !inStock || stock === 0 ? 'Critical'
+      : stock <= minRequired ? 'Low Stock'
+      : 'In Stock';
     const suggestedReorder = status === 'In Stock' ? 0 : Math.max(0, minRequired * 3 - stock);
     return {
+      productId: p.productId,
       id: 'PROD-' + p.productId,
       name: p.productName,
       currentStock: stock,
@@ -60,7 +71,8 @@ export class InventoryMonitoringComponent implements OnInit {
 
   get criticalCount(): number { return this.inventoryItems.filter(i => i.status === 'Critical').length; }
   get lowStockCount(): number { return this.inventoryItems.filter(i => i.status === 'Low Stock').length; }
-  get totalItems(): number { return this.inventoryItems.length; }
+  get inStockCount(): number  { return this.inventoryItems.filter(i => i.status === 'In Stock').length; }
+  get totalItems(): number    { return this.inventoryItems.length; }
 
   stockBarClass(item: InventoryItem): string {
     const pct = (item.currentStock / item.minRequired) * 100;
@@ -71,5 +83,35 @@ export class InventoryMonitoringComponent implements OnInit {
 
   stockBarWidth(item: InventoryItem): number {
     return Math.min((item.currentStock / item.minRequired) * 100, 100);
+  }
+
+  /** Trigger a reorder by jumping to Create Order with this product preselected. */
+  createReorder(item: InventoryItem) {
+    this.router.navigate(['/app/create-order'], {
+      queryParams: { productId: item.productId },
+    });
+  }
+
+  /** Aggregated breakdown for the Stock Level Overview chart. */
+  get overviewBuckets(): { label: string; count: number; percent: number; barClass: string; badgeClass: string }[] {
+    const total = this.totalItems || 1;
+    return [
+      { label: 'In Stock',  count: this.inStockCount,  percent: Math.round((this.inStockCount  / total) * 100), barClass: 'bg-green-500',  badgeClass: 'bg-green-100 text-green-800' },
+      { label: 'Low Stock', count: this.lowStockCount, percent: Math.round((this.lowStockCount / total) * 100), barClass: 'bg-yellow-500', badgeClass: 'bg-yellow-100 text-yellow-800' },
+      { label: 'Critical',  count: this.criticalCount, percent: Math.round((this.criticalCount / total) * 100), barClass: 'bg-red-500',    badgeClass: 'bg-red-100 text-red-800' },
+    ];
+  }
+
+  /** Top 5 lowest-stock items, for a mini bar chart at the bottom. */
+  get topLowStock(): InventoryItem[] {
+    return [...this.inventoryItems]
+      .sort((a, b) => a.currentStock - b.currentStock)
+      .slice(0, 5);
+  }
+
+  /** Width of the per-item bar in the bottom chart, scaled to the largest stock in the top-5. */
+  topBarWidth(item: InventoryItem): number {
+    const max = Math.max(...this.topLowStock.map(i => i.currentStock), 1);
+    return Math.max(4, Math.round((item.currentStock / max) * 100));
   }
 }

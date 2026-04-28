@@ -174,21 +174,37 @@
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Level</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             @if (lowStockProducts.length === 0) {
-              <tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">All products are at healthy stock levels.</td></tr>
+              <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">All products are at healthy stock levels.</td></tr>
             } @else {
               @for (p of lowStockProducts; track p.productId) {
                 <tr class="hover:bg-gray-50">
                   <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ p.productName }}</td>
                   <td class="px-6 py-4 text-sm text-gray-600">{{ p.categoryName }}</td>
-                  <td class="px-6 py-4 text-sm font-medium">{{ p.stockQuantity ?? 0 }}</td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-32 bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div class="h-2 rounded-full transition-all"
+                          [ngClass]="stockBarClass(p)"
+                          [style.width.%]="stockBarPercent(p)"></div>
+                      </div>
+                      <span class="text-sm font-medium">{{ p.stockQuantity ?? 0 }}</span>
+                    </div>
+                  </td>
                   <td class="px-6 py-4">
                     <span class="px-2 py-1 text-xs font-medium rounded-full" [ngClass]="stockSeverity(p).cls">{{ stockSeverity(p).label }}</span>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <button (click)="createReorder(p)"
+                      class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                      Create Reorder →
+                    </button>
                   </td>
                 </tr>
               }
@@ -196,6 +212,30 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Stock Level Overview chart -->
+    <div class="bg-white rounded-lg shadow p-6 mt-6">
+      <h2 class="text-lg font-semibold mb-4">Stock Level Overview</h2>
+      @if (stockOverviewData.length === 0) {
+        <p class="text-sm text-gray-500 text-center py-8">No products to display.</p>
+      } @else {
+        <div class="space-y-3">
+          @for (row of stockOverviewData; track row.label) {
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700">{{ row.label }}</span>
+                <span class="text-sm text-gray-600">{{ row.count }} product(s)</span>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                <div class="h-3 rounded-full"
+                     [ngClass]="row.barClass"
+                     [style.width.%]="row.percent"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 
